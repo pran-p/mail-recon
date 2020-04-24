@@ -106,9 +106,10 @@ def get_breach_data(mail_list):
 """This function opens the urls and returns the mail list"""
 def get_mails_list_requests(url_list,mail):
     mail_list=[]
+    final_url_list=[]
     bar = IncrementalBar('Countdown', max = len(url_list))
-    for i in url_list:
-        r=requests.get(i)
+    for i in range(len(url_list)):
+        r=requests.get(url[i])
         bar.next()
         soup=BeautifulSoup(r.content,'html5lib')
         plain_text=soup.get_text()
@@ -117,14 +118,16 @@ def get_mails_list_requests(url_list,mail):
         # re_exp='\S+'+mail
         re_exp='[a-zA-Z0-9_.]+?'+mail
         lst = re.findall(re_exp, plain_text)
-        for i in lst:
-            mail_list.append(i)
-    return mail_list
+        for j in lst:
+            mail_list.append(j)
+            final_url_list.append(url_list[i])
+    return mail_list, final_url_list
 
 
 """This function returns a list of source codes from a list of urls supplied"""
 def get_source_code_list(url_list=[]):
     source_code_list=[]
+    new_url_list=[]
     if type(url_list)==list and len(url_list)==0:
         print('Parameter is empty, you need to pass a list of urls')
     elif type(url_list)!=list:
@@ -139,6 +142,7 @@ def get_source_code_list(url_list=[]):
             elem = driver.find_element_by_xpath("//*")
             source_code = elem.get_attribute("outerHTML")
             source_code_list.append(source_code)
+            new_url_list.append(i)
             # Updating the progress bar
             bar.next()
             # TAB1.update_idletasks()
@@ -146,25 +150,27 @@ def get_source_code_list(url_list=[]):
 
     driver.close()
     bar.finish()
-    return source_code_list
+    return source_code_list, new_url_list
 
 """This function opens the urls and returns the mail list by performing selenium scraping"""
 def get_mails_list_selenium(url_list,mail):
     mail_list=[]
-    source_code_list=get_source_code_list(url_list)
-    for i in source_code_list:
-        soup=BeautifulSoup(i,'html5lib')
+    final_url_list=[]
+    source_code_list, new_url_list=get_source_code_list(url_list)
+    for i in range(len(source_code_list)):
+        soup=BeautifulSoup(source_code_list[i],'html5lib')
         plain_text=soup.get_text()
         # Now we have the website as a plain text
         # We need to extract the mails from the url
         re_exp='[a-zA-Z0-9_.]+?'+mail
         lst = re.findall(re_exp, plain_text)
-        for i in lst:
-            mail_list.append(i)
-    return mail_list
+        for j in lst:
+            mail_list.append(j)
+            final_url_list.append(new_url_list[i])
+    return mail_list,final_url_list
 
 """This function saves the extracted mail addresses to a file"""
-def save_file(mail_list,f_name, number_breach, breach_data):
+def save_file(mail_list,f_name, number_breach, breach_data, final_url_list):
     # Save only the list of mails
     f=open('./data/'+f_name+'.txt','w')
     f.write('\n'.join(mail_list))
@@ -182,7 +188,16 @@ def save_file(mail_list,f_name, number_breach, breach_data):
     json_dump=json.dumps(breach_data)
     f.write(json_dump)
     f.close()
+
+    # Save the mail and the corresponding url_list
+    f=open('./data/'+f_name+'_mail_url_mapping.txt','w')
+    for i in range(len(mail_list)):
+        f.write(mail_list[i]+'\t'+str(final_url_list[i])+'\n')
+    f.close()
+    
     print('[+] Extracted files saved to file: {0} in the data folder'.format(f_name))
+
+
 
 """This function is responsible to get the mail pattern from the user and combine the functionality of the above two functions"""
 def get_mail_pattern():
@@ -215,7 +230,7 @@ def get_mail_pattern():
             print('[+] Extracted url from google results')
             print('[+] {0} number of urls found'.format(len(url_list)))
             print('[+] Extracting HTML code for the urls')
-            mail_list=get_mails_list_selenium(url_list,mail)
+            mail_list, final_url_list=get_mails_list_selenium(url_list,mail)
             print('\n[+] {0} mail addresses found'.format(len(mail_list)))
             print('[+] Results for {0} :'.format(mail))
             number_breach, breach_data=get_breach_data(mail_list)
@@ -228,7 +243,7 @@ def get_mail_pattern():
             f_name=mail+'-mail-recon-res-'+str(tempo.tm_hour)+'-'+str(tempo.tm_min)+'-'+str(tempo.tm_sec)
             if args.fileName:
                 f_name=args.fileName
-            save_file(mail_list,f_name, number_breach, breach_data)
+            save_file(mail_list,f_name, number_breach, breach_data, final_url_list)
 
     # Performs the basic scans
     elif args.basic and args.format and args.number:
@@ -244,7 +259,7 @@ def get_mail_pattern():
             print('[+] Extract URL from google results')
             print('[+] {0} number of urls found'.format(len(url_list)))
             print('[+] Performings scraping')
-            mail_list=get_mails_list_requests(url_list,mail)
+            mail_list, final_url_list=get_mails_list_requests(url_list,mail)
             number_breach, breach_data=get_breach_data(mail_list)
             print('\n[+] {0} mail addresses found'.format(len(mail_list)))
             print('[+] Results for {0} :'.format(mail))
@@ -255,7 +270,7 @@ def get_mail_pattern():
             f_name=mail+'-mail-recon-res-'+str(tempo.tm_hour)+'-'+str(tempo.tm_min)+'-'+str(tempo.tm_sec)
             if args.fileName:
                 f_name=args.fileName
-            save_file(mail_list,f_name, number_breach, breach_data)
+            save_file(mail_list,f_name, number_breach, breach_data, final_url_list)
 
 
     # When invalid arguments are passed
