@@ -1,0 +1,42 @@
+1587706777430	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "-marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile.kip7hoLb707L"
+
+(firefox:18046): Gtk-WARNING **: 11:09:37.696: Theme parsing error: gtk.css:3601:22: 'none' is not a valid color name
+1587706778736	addons.webextension.doh-rollout@mozilla.org	WARN	Loading extension 'doh-rollout@mozilla.org': Reading manifest: Invalid extension permission: networkStatus
+1587706780745	addons.webextension.screenshots@mozilla.org	WARN	Loading extension 'screenshots@mozilla.org': Reading manifest: Invalid extension permission: mozillaAddons
+1587706780745	addons.webextension.screenshots@mozilla.org	WARN	Loading extension 'screenshots@mozilla.org': Reading manifest: Invalid extension permission: telemetry
+1587706780745	addons.webextension.screenshots@mozilla.org	WARN	Loading extension 'screenshots@mozilla.org': Reading manifest: Invalid extension permission: resource://pdf.js/
+1587706780745	addons.webextension.screenshots@mozilla.org	WARN	Loading extension 'screenshots@mozilla.org': Reading manifest: Invalid extension permission: about:reader*
+
+(/usr/lib/firefox/firefox:18117): Gtk-WARNING **: 11:09:42.274: Theme parsing error: gtk.css:3601:22: 'none' is not a valid color name
+
+(/usr/lib/firefox/firefox:18211): Gtk-WARNING **: 11:09:42.554: Theme parsing error: gtk.css:3601:22: 'none' is not a valid color name
+
+(/usr/lib/firefox/firefox:18265): Gtk-WARNING **: 11:09:43.986: Theme parsing error: gtk.css:3601:22: 'none' is not a valid color name
+1587706784502	Marionette	INFO	Listening on port 36529
+1587706784553	Marionette	WARN	TLS certificate errors will be ignored for this session
+1587706829088	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "-marionette" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile.83NEHo6QrxIM"
+
+(firefox:18342): Gtk-WARNING **: 11:10:29.134: Theme parsing error: gtk.css:3601:22: 'none' is not a valid color name
+1587706829903	addons.webextension.doh-rollout@mozilla.org	WARN	Loading extension 'doh-rollout@mozilla.org': Reading manifest: Invalid extension permission: networkStatus
+1587706831663	addons.webextension.screenshots@mozilla.org	WARN	Loading extension 'screenshots@mozilla.org': Reading manifest: Invalid extension permission: mozillaAddons
+1587706831663	addons.webextension.screenshots@mozilla.org	WARN	Loading extension 'screenshots@mozilla.org': Reading manifest: Invalid extension permission: telemetry
+1587706831664	addons.webextension.screenshots@mozilla.org	WARN	Loading extension 'screenshots@mozilla.org': Reading manifest: Invalid extension permission: resource://pdf.js/
+1587706831664	addons.webextension.screenshots@mozilla.org	WARN	Loading extension 'screenshots@mozilla.org': Reading manifest: Invalid extension permission: about:reader*
+
+(/usr/lib/firefox/firefox:18394): Gtk-WARNING **: 11:10:32.286: Theme parsing error: gtk.css:3601:22: 'none' is not a valid color name
+
+(/usr/lib/firefox/firefox:18504): Gtk-WARNING **: 11:10:33.175: Theme parsing error: gtk.css:3601:22: 'none' is not a valid color name
+
+(/usr/lib/firefox/firefox:18574): Gtk-WARNING **: 11:10:34.098: Theme parsing error: gtk.css:3601:22: 'none' is not a valid color name
+1587706834348	Marionette	INFO	Listening on port 33743
+1587706834405	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript error: https://s.go-mpulse.net/boomerang/CZ5PJ-C3ULH-UWR94-5N9HG-JMT9V, line 12: TypeError: BOOMR.getPerformance is not a function
+JavaScript error: https://s.go-mpulse.net/boomerang/CZ5PJ-C3ULH-UWR94-5N9HG-JMT9V, line 12: TypeError: BOOMR.getPerformance is not a function
+JavaScript error: , line 0: UnknownError: The operation failed for reasons unrelated to the database itself and not covered by any other error code.
+1587706865838	Marionette	INFO	Stopped listening on port 36529
+JavaScript error: https://s.go-mpulse.net/boomerang/CZ5PJ-C3ULH-UWR94-5N9HG-JMT9V, line 12: TypeError: BOOMR.getPerformance is not a function
+JavaScript error: https://s.go-mpulse.net/boomerang/CZ5PJ-C3ULH-UWR94-5N9HG-JMT9V, line 12: TypeError: BOOMR.getPerformance is not a function
+JavaScript error: , line 0: uncaught exception: Object
+JavaScript error: https://s.go-mpulse.net/boomerang/CZ5PJ-C3ULH-UWR94-5N9HG-JMT9V, line 12: TypeError: BOOMR.getPerformance is not a function
+JavaScript error: resource:///actors/ContentMetaChild.jsm, line 167: InvalidStateError: An attempt was made to use an object that is not, or is no longer, usable
+1587706924788	Marionette	INFO	Stopped listening on port 33743

@@ -1,3 +1,4 @@
+# Importing the required modules
 try:
     from bs4 import BeautifulSoup
 except:
@@ -9,6 +10,12 @@ try:
 except ImportError:
     print("No module named 'google' found")
 from progress.bar import IncrementalBar
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+import argparse
+import pyfiglet
+import sys
+import time
 """Below is the custom implementation of google result scraping"""
 # """This function get the source code of the search results for future parsing using BeautifulSoup"""
 # def get_source_code(search,number):
@@ -44,15 +51,15 @@ from progress.bar import IncrementalBar
 
 
 
-
+"""This function performs the google search using google dorks and returns the result urls"""
 def get_url(search_q, number):
     url_list=[]
     for j in search(search_q, stop=number):
         url_list.append(j)
     return url_list
 
-
-def get_mails_list(url_list,mail):
+"""This function opens the urls and returns the mail list"""
+def get_mails_list_requests(url_list,mail):
     mail_list=[]
     bar = IncrementalBar('Countdown', max = len(url_list))
     for i in url_list:
@@ -62,31 +69,138 @@ def get_mails_list(url_list,mail):
         plain_text=soup.get_text()
         # Now we have the website as a plain text
         # We need to extract the mails from the url
-        re_exp='\S+'+mail
+        # re_exp='\S+'+mail
+        re_exp='[a-zA-Z0-9_.]+?'+mail
         lst = re.findall(re_exp, plain_text)
         for i in lst:
             mail_list.append(i)
     return mail_list
 
 
-
-def get_mail_pattern():
-    mail=input('Enter the mail pattern to search for(Example:@gmail.com):')
-    number=int(input('Enter the approx number of pages to search for:'))
-    if not re.search('@\S+.\S',mail):
-        print('Input error, enter in the right format')
+"""This function returns a list of source codes from a list of urls supplied"""
+def get_source_code_list(url_list=[]):
+    source_code_list=[]
+    if type(url_list)==list and len(url_list)==0:
+        print('Parameter is empty, you need to pass a list of urls')
+    elif type(url_list)!=list:
+        print('You need to pass a list of urls as a paramenter to this function')
     else:
-        search='intext:"'+mail+'""'
-        # source_code=get_source_code(mail,number)
-        # url_list=get_url(source_code)
-        url_list=get_url(search, number)
-        print('[+] Extracted url from google results')
-        print('[+] {0} number of urls found'.format(len(url_list)))
-        print('[+] Extracting HTML code for the urls')
-        mail_list=get_mails_list(url_list,mail)
-        print('\n[+] {0} mail addresses found'.format(len(mail_list)))
-        print('[+] Results for {0} :'.format(mail))
-        print('\n'.join(mail_list))
+        # Initializing the progress bar
+        bar = IncrementalBar('Countdown', max = len(url_list))
+        driver = webdriver.Firefox(executable_path=r'./geckodriver')
+        # Extracting the souce code of the given urls
+        for i in url_list:
+            driver.get(i)
+            elem = driver.find_element_by_xpath("//*")
+            source_code = elem.get_attribute("outerHTML")
+            source_code_list.append(source_code)
+            # Updating the progress bar
+            bar.next()
+            # TAB1.update_idletasks()
+            # Adding a time delay of 1 seconds between multiple requests
+
+    driver.close()
+    bar.finish()
+    return source_code_list
+
+"""This function opens the urls and returns the mail list by performing selenium scraping"""
+def get_mails_list_selenium(url_list,mail):
+    mail_list=[]
+    source_code_list=get_source_code_list(url_list)
+    for i in source_code_list:
+        soup=BeautifulSoup(i,'html5lib')
+        plain_text=soup.get_text()
+        # Now we have the website as a plain text
+        # We need to extract the mails from the url
+        re_exp='[a-zA-Z0-9_.]+?'+mail
+        lst = re.findall(re_exp, plain_text)
+        for i in lst:
+            mail_list.append(i)
+    return mail_list
+
+"""This function saves the extracted mail addresses to a file"""
+def save_file(mail_list,f_name):
+    f=open(f_name,'w')
+    f.write('\n'.join(mail_list))
+    f.close()
+    print('[+] Extracted files saved to file: {0}'.format(f_name))
+
+"""This function is responsible to get the mail pattern from the user and combine the functionality of the above two functions"""
+def get_mail_pattern():
+    f=pyfiglet.Figlet(font='cybermedium')
+    print(f.renderText('Mail Recon'))
+    print ('\033[1m')
+    print("M4i1 R3c0n: 3xtr4ct m4i1 4ddr3ss3s in th3 0p3n...")
+    print ('\033[0m')
+    # Taking the arguments
+    parser=argparse.ArgumentParser()
+    parser.add_argument('-s','--selenium',action='store_true',  help="Perform selenium scraping")
+    parser.add_argument('-b','--basic', action='store_true', help="Perform normal scraping(May not be able to scrap all website)")
+    parser.add_argument('-n','--number', help="Approx number of required mails")
+    parser.add_argument('-f','--format', help="Mail address format (Eg: @gmail.com)")
+    parser.add_argument('-fn','--fileName',help="File name to save the results")
+    # parser.add_argument('-m','--multiple', nargs=2, metavar=('port1,port2,...','ip'),help='enter the list of port number separated by comma and the ip of the system for port scan')
+    # parser.add_argument('-r','--range', nargs=3, metavar=('start-port', 'end-port', 'ip1,ip2,...'), help='enter the start port and the end port range and the ip of the system for port scan')
+    args=parser.parse_args()
+    # Performs selenium scan
+    if args.selenium and args.format and args.number:
+        mail=args.format
+        number=int(args.number)
+        if not re.search('@\S+.\S',mail):
+            print('Input error, enter in the right format')
+        else:
+            search='intext:"'+mail+'""'
+            # source_code=get_source_code(mail,number)
+            # url_list=get_url(source_code)
+            url_list=get_url(search, number)
+            print('[+] Extracted url from google results')
+            print('[+] {0} number of urls found'.format(len(url_list)))
+            print('[+] Extracting HTML code for the urls')
+            mail_list=get_mails_list_selenium(url_list,mail)
+            print('\n[+] {0} mail addresses found'.format(len(mail_list)))
+            print('[+] Results for {0} :'.format(mail))
+            print('\n'.join(mail_list))
+            tempo=time.localtime()
+            # Default name if no file name given by user
+            f_name=mail+'-mail-recon-res-'+str(tempo.tm_hour)+'-'+str(tempo.tm_min)+'-'+str(tempo.tm_sec)+'.txt'
+            if args.fileName:
+                f_name=args.fileName
+            save_file(mail_list,f_name)
+
+    # Performs the basic scans
+    elif args.basic and args.format and args.number:
+        mail=args.format
+        number=int(args.number)
+        if not re.search('@\S+.\S',mail):
+            print('Input error, enter in the right format')
+        else:
+            search='intext:"'+mail+'""'
+            # source_code=get_source_code(mail,number)
+            # url_list=get_url(source_code)
+            url_list=get_url(search, number)
+            print('[+] Extract URL from google results')
+            print('[+] {0} number of urls found'.format(len(url_list)))
+            print('[+] Performings scraping')
+            mail_list=get_mails_list_requests(url_list,mail)
+            print('\n[+] {0} mail addresses found'.format(len(mail_list)))
+            print('[+] Results for {0} :'.format(mail))
+            print('\n'.join(mail_list))
+            tempo=time.localtime()
+            # Default name if no file name given by user
+            f_name=mail+'-mail-recon-res-'+str(tempo.tm_hour)+'-'+str(tempo.tm_min)+'-'+str(tempo.tm_sec)+'.txt'
+            if args.fileName:
+                f_name=args.fileName
+            save_file(mail_list,f_name)
+
+
+    # When invalid arguments are passed
+    else:
+        print('Invalid arguments')
+        print('To see all the options enter: python3 mail-recon.py -h')
+        print('-n and -f flag are mandatory and you have to choose between -s and -b flags')
+
+
+
 
 if __name__=="__main__":
     get_mail_pattern()
