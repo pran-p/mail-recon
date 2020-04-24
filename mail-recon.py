@@ -29,6 +29,7 @@ except ImportError:
 import sys
 import time
 import json
+import random
 # from breach-check import get_breach_data
 """Below is the custom implementation of google result scraping"""
 # """This function get the source code of the search results for future parsing using BeautifulSoup"""
@@ -64,11 +65,17 @@ import json
 #     return url
 
 
+# This is a list of google tlds that we'll be using to avoid prevention of google search from the program
+# We will randomly select a tld and use it in our google search
+google_tlds=['com','ac','ad','ae','com.af','com.ag','com.ai','al','am','co.ao','com.ar','as','at','com.au','az','ba','com.bd','be','bf','bg','com.bh','bi','bj','com.bn','com.bo','com.br','bs','bt','co.bw','by','com.bz','ca','com.kh','cc','cd','cf','cat','cg','ch','ci','co.ck','cl','cm','cn','com.co','co.cr','com.cu','cv','com.cy','cz','de','dj','dk','dm','com.do','dz','com.ec','ee','com.eg','es','com.et','fi','com.fj','fm','fr','ga','ge','gf','gg','com.gh','com.gi','gl','gm','gp','gr','com.gt','gy','com.hk','hn','hr','ht','hu','co.id','iq','ie','co.il','im','co.in','io','is','it','je','com.jm','jo','co.jp','co.ke','ki','kg','co.kr','com.kw','kz','la','com.lb','com.lc','li','lk','co.ls','lt','lu','lv','com.ly','co.ma','md','me','mg','mk','ml','com.mm','mn','ms','com.mt','mu','mv','mw','com.mx','com.my','co.mz','com.na','ne','com.nf','com.ng','com.ni','nl','no','com.np','nr','nu','co.nz','com.om','com.pk','com.pa','com.pe','com.ph','pl','com.pg','pn','com.pr','ps','pt','com.py','com.qa','ro','rs','ru','rw','com.sa','com.sb','sc','se','com.sg','sh','si','sk','com.sl','sn','sm','so','st','sr','com.sv','td','tg','co.th','com.tj','tk','tl','tm','to','tn','com.tr','tt','com.tw','co.tz','com.ua','co.ug','co.uk','com','com.uy','co.uz','com.vc','co.ve','vg','co.vi','com.vn','vu','ws','co.za','co.zm','co.zw']
+
 
 """This function performs the google search using google dorks and returns the result urls"""
 def get_url(search_q, number):
     url_list=[]
-    for j in search(search_q, tld='co.in',stop=number):
+    tempo=google_tlds[random.randint(0,198)]
+    print('[+] Using the google {0} tld for the search'.format(tempo))
+    for j in search(search_q, tld=tempo,stop=number):
         url_list.append(j)
     return url_list
 
@@ -194,7 +201,7 @@ def save_file(mail_list,f_name, number_breach, breach_data, final_url_list):
     for i in range(len(mail_list)):
         f.write(mail_list[i]+'\t'+str(final_url_list[i])+'\n')
     f.close()
-    
+
     print('[+] Extracted files saved to file: {0} in the data folder'.format(f_name))
 
 
