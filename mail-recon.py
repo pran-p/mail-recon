@@ -30,6 +30,7 @@ import sys
 import time
 import json
 import random
+import os
 # from breach-check import get_breach_data
 """Below is the custom implementation of google result scraping"""
 # """This function get the source code of the search results for future parsing using BeautifulSoup"""
@@ -240,7 +241,10 @@ def get_mail_pattern():
             print('[+] Extracting HTML code for the urls')
             mail_list, final_url_list=get_mails_list_selenium(url_list,mail)
             print('\n[+] {0} mail addresses found'.format(len(mail_list)))
-            print('[+] Results for {0} :'.format(mail))
+            f=open('tempo_mail.txt','w')
+            f.write('\n'.join(mail_list))
+            f.close()
+            # print('[+] Results for {0} :'.format(mail))
             number_breach, breach_data=get_breach_data(mail_list)
             print('\n[+] {0} mail addresses found'.format(len(mail_list)))
             print('[+] Results for {0} :'.format(mail))
@@ -252,6 +256,8 @@ def get_mail_pattern():
             if args.fileName:
                 f_name=args.fileName
             save_file(mail_list,f_name, number_breach, breach_data, final_url_list)
+            os.remove('tempo_mail.txt')
+
 
     # Performs the basic scans
     elif args.basic and args.format and args.number:
@@ -279,7 +285,7 @@ def get_mail_pattern():
             if args.fileName:
                 f_name=args.fileName
             save_file(mail_list,f_name, number_breach, breach_data, final_url_list)
-
+            os.remove('tempo_mail.txt')
 
     # When invalid arguments are passed
     else:
