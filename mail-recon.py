@@ -1,7 +1,7 @@
 # Importing the required modules
 try:
     from bs4 import BeautifulSoup
-except:
+except ImportError:
     print('No module named bs4 found')
 import requests
 import re
@@ -9,13 +9,27 @@ try:
     from googlesearch import search
 except ImportError:
     print("No module named 'google' found")
-from progress.bar import IncrementalBar
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-import argparse
-import pyfiglet
+try:
+    from progress.bar import IncrementalBar
+except ImportError:
+    print('No module named "progress.bar" found')
+try:
+    from selenium import webdriver
+    from selenium.webdriver.common.keys import Keys
+except ImportError:
+    print('No module named "selenium" found')
+try:
+    import argparse
+except ImportError:
+    print('No module named "argparse" found')
+try:
+    import pyfiglet
+except ImportError:
+    print('No module named "pyfiglet" found')
 import sys
 import time
+import json
+# from breach-check import get_breach_data
 """Below is the custom implementation of google result scraping"""
 # """This function get the source code of the search results for future parsing using BeautifulSoup"""
 # def get_source_code(search,number):
@@ -54,9 +68,40 @@ import time
 """This function performs the google search using google dorks and returns the result urls"""
 def get_url(search_q, number):
     url_list=[]
-    for j in search(search_q, stop=number):
+    for j in search(search_q, tld='co.in',stop=number):
         url_list.append(j)
     return url_list
+
+
+"""This module performs breach check from haveibeenpwned.com website"""
+def get_breach_data(mail_list):
+
+    breach_data=[]
+    mail_breach_mapping=[]
+    driver = webdriver.Chrome(executable_path=r'./chromedriver')
+    for i in mail_list:
+        tempo={}
+        tp={}
+        url='https://haveibeenpwned.com/unifiedsearch/'+str(i)
+        driver.get(url)
+        elem = driver.find_element_by_xpath("//*")
+        source_code = elem.get_attribute("outerHTML")
+        soup=BeautifulSoup(source_code,'html5lib')
+        pre_tag=soup.find('pre')
+        # If breaches found
+        if pre_tag:
+            json_data=json.loads(pre_tag.text)
+            tempo=len(json_data['Breaches'])
+            breach_data.append(tempo)
+            tp['mail']=i
+            tp['Breaches']=json_data
+            mail_breach_mapping.append(tp)
+
+        # If no breach found
+        else:
+            breach_data.append(0)
+    return breach_data, mail_breach_mapping
+
 
 """This function opens the urls and returns the mail list"""
 def get_mails_list_requests(url_list,mail):
@@ -87,7 +132,7 @@ def get_source_code_list(url_list=[]):
     else:
         # Initializing the progress bar
         bar = IncrementalBar('Countdown', max = len(url_list))
-        driver = webdriver.Firefox(executable_path=r'./geckodriver')
+        driver = webdriver.Chrome(executable_path=r'./chromedriver')
         # Extracting the souce code of the given urls
         for i in url_list:
             driver.get(i)
@@ -119,11 +164,25 @@ def get_mails_list_selenium(url_list,mail):
     return mail_list
 
 """This function saves the extracted mail addresses to a file"""
-def save_file(mail_list,f_name):
-    f=open(f_name,'w')
+def save_file(mail_list,f_name, number_breach, breach_data):
+    # Save only the list of mails
+    f=open('./data/'+f_name+'.txt','w')
     f.write('\n'.join(mail_list))
     f.close()
-    print('[+] Extracted files saved to file: {0}'.format(f_name))
+
+    # Save the mail and number of breaches
+    f=open('./data/'+f_name+'_number_breaches.txt','w')
+    for i in range(len(number_breach)):
+        f.write(mail_list[i]+'\t'+str(number_breach[i])+'\n')
+    f.close()
+
+
+    # Save the breach data
+    f=open('./data/'+f_name+'_breach_data.txt','w')
+    json_dump=json.dumps(breach_data)
+    f.write(json_dump)
+    f.close()
+    print('[+] Extracted files saved to file: {0} in the data folder'.format(f_name))
 
 """This function is responsible to get the mail pattern from the user and combine the functionality of the above two functions"""
 def get_mail_pattern():
@@ -136,7 +195,7 @@ def get_mail_pattern():
     parser=argparse.ArgumentParser()
     parser.add_argument('-s','--selenium',action='store_true',  help="Perform selenium scraping")
     parser.add_argument('-b','--basic', action='store_true', help="Perform normal scraping(May not be able to scrap all website)")
-    parser.add_argument('-n','--number', help="Approx number of required mails")
+    parser.add_argument('-n','--number', help="Approx number of url to search for")
     parser.add_argument('-f','--format', help="Mail address format (Eg: @gmail.com)")
     parser.add_argument('-fn','--fileName',help="File name to save the results")
     # parser.add_argument('-m','--multiple', nargs=2, metavar=('port1,port2,...','ip'),help='enter the list of port number separated by comma and the ip of the system for port scan')
@@ -159,13 +218,17 @@ def get_mail_pattern():
             mail_list=get_mails_list_selenium(url_list,mail)
             print('\n[+] {0} mail addresses found'.format(len(mail_list)))
             print('[+] Results for {0} :'.format(mail))
-            print('\n'.join(mail_list))
+            number_breach, breach_data=get_breach_data(mail_list)
+            print('\n[+] {0} mail addresses found'.format(len(mail_list)))
+            print('[+] Results for {0} :'.format(mail))
+            for i in range(len(mail_list)):
+                print(mail_list[i]+'\t'+str(number_breach[i]))
             tempo=time.localtime()
             # Default name if no file name given by user
-            f_name=mail+'-mail-recon-res-'+str(tempo.tm_hour)+'-'+str(tempo.tm_min)+'-'+str(tempo.tm_sec)+'.txt'
+            f_name=mail+'-mail-recon-res-'+str(tempo.tm_hour)+'-'+str(tempo.tm_min)+'-'+str(tempo.tm_sec)
             if args.fileName:
                 f_name=args.fileName
-            save_file(mail_list,f_name)
+            save_file(mail_list,f_name, number_breach, breach_data)
 
     # Performs the basic scans
     elif args.basic and args.format and args.number:
@@ -182,15 +245,17 @@ def get_mail_pattern():
             print('[+] {0} number of urls found'.format(len(url_list)))
             print('[+] Performings scraping')
             mail_list=get_mails_list_requests(url_list,mail)
+            number_breach, breach_data=get_breach_data(mail_list)
             print('\n[+] {0} mail addresses found'.format(len(mail_list)))
             print('[+] Results for {0} :'.format(mail))
-            print('\n'.join(mail_list))
+            for i in range(len(mail_list)):
+                print(mail_list[i]+'\t'+str(number_breach[i]))
             tempo=time.localtime()
             # Default name if no file name given by user
-            f_name=mail+'-mail-recon-res-'+str(tempo.tm_hour)+'-'+str(tempo.tm_min)+'-'+str(tempo.tm_sec)+'.txt'
+            f_name=mail+'-mail-recon-res-'+str(tempo.tm_hour)+'-'+str(tempo.tm_min)+'-'+str(tempo.tm_sec)
             if args.fileName:
                 f_name=args.fileName
-            save_file(mail_list,f_name)
+            save_file(mail_list,f_name, number_breach, breach_data)
 
 
     # When invalid arguments are passed
