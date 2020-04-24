@@ -87,6 +87,7 @@ def get_breach_data(mail_list):
     mail_breach_mapping=[]
     driver = webdriver.Chrome(executable_path=r'./chromedriver')
     for i in mail_list:
+        time.sleep(1)
         tempo={}
         tp={}
         url='https://haveibeenpwned.com/unifiedsearch/'+str(i)
